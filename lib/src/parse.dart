@@ -101,5 +101,14 @@ int parse_variable_length(List<int> fileArray) {
     result <<= 7;
     return_count = fileArray[0];
     fileArray.removeAt(0);
+
+    result |= (fileArray[0] & 0x7F);
+    firstRun = false;
   }
+
+  if (num == 0 && !firstRun) {
+    throw new Exception("Invalid variable length value");
+  }
+
+  return result;
 }
