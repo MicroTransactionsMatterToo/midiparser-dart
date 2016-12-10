@@ -1,4 +1,4 @@
-import 'src/events.dart';
-import 'src/notes.dart';
-import 'src/parse.dart';
-import 'src/midi.dart';
+export 'src/events.dart';
+export 'src/notes.dart';
+export 'src/parse.dart';
+export 'src/midi.dart';

@@ -1,7 +1,6 @@
-import "dart:io";
 
-import "package:midiparser/src/parse.dart";
 import "package:midiparser/src/events.dart";
+import "package:midiparser/src/parse.dart";
 
 
 // Lexer State enum
@@ -19,6 +18,10 @@ class MIDIData {
   List<NoteEvent> notes;
   List<dynamic> events;
   List<PolyPhonicAfterTouch> pressureChanges;
+  Iterator<dynamic> get iterator {
+    return this.events.iterator;
+  }
+
 
   MIDIData() {
     this.wheelEvents = new List<PitchWheelEvent>();
@@ -29,6 +32,7 @@ class MIDIData {
   }
 
   void add(dynamic item) {
+    print("G");
     // Type Checking
     if (item is NoteEvent) {
       this.notes.add(item);
@@ -37,8 +41,12 @@ class MIDIData {
     else if (item is PolyPhonicAfterTouch) {
       this.pressureChanges.add(item);
       this.events.add(item);
+    } else {
+      this.events.add(item);
     }
   }
+
+  String toString() => this.events.toString();
 }
 
 // The Parser itself
@@ -71,50 +79,56 @@ class Parser {
 
   // Actual Parsing function
   /// Parses using current internal data
-  Parse() {
-    switch (this.state) {
-      case LexState.EXPECT_HEADER:
-        this.parsed.fileHeader = parse_file_header(this.data);
-        this.state = LexState.EXPECT_CHUNK;
-        break;
-      case LexState.EXPECT_CHUNK:
-        this.parsed.tracks.add(parse_track_header(this.data));
-        this.nextHeaderOffset = this.parsed.tracks.last.length + this.GetCurrentIndex();
-        this.state = LexState.EXPECT_TRACK_EVENT;
-        break;
-      case LexState.EXPECT_TRACK_EVENT:
-        this.ParseTrackEvent();
-        break;
-      case LexState.DONE:
-        break;
+  parse() {
+    while (this.data.length > 1) {
+      switch (this.state) {
+        case LexState.EXPECT_HEADER:
+          this.parsed.fileHeader = parse_file_header(this.data);
+          this.state = LexState.EXPECT_CHUNK;
+          break;
+        case LexState.EXPECT_CHUNK:
+          this.parsed.tracks.add(parse_track_header(this.data));
+          this.nextHeaderOffset =
+              this.parsed.tracks.last.length + this.getCurrentIndex();
+          this.state = LexState.EXPECT_TRACK_EVENT;
+          break;
+        case LexState.EXPECT_TRACK_EVENT:
+          this.parseTrackEvent();
+          break;
+        case LexState.DONE:
+          break;
+      }
     }
   }
 
   /// Called internally, when parsing an ambiguous in-track event
-  ParseTrackEvent() {
+  parseTrackEvent() {
     int time = parse_variable_length(this.data);
+    print(time);
     int currentByte = this.data[0];
-    switch (currentByte) {
+    int currentMessage = currentByte & 0xF0;
+    print(currentByte.toRadixString(16));
+    switch (currentMessage) {
       // NoteOff
-      case 0x8:
-        int pitch = parse_uint7(this.data);
-        int velocity = parse_uint7(this.data);
+      case 0x80:
+        var data = parse_two_uint7(this.data);
+
         // New NoteOff
-        NoteOff note = new NoteOff(pitch, velocity, time);
+        NoteOff note = new NoteOff(data[1], data[0], time);
         // Write into this
         this.parsed.add(note);
         break;
       // NoteOn
-      case 0x9:
-        int pitch = parse_uint7(this.data);
-        int velocity = parse_uint7(this.data);
+      case 0x90:
+        print("0x9");
+        var data = parse_two_uint7(this.data);
         // New NoteOn
-        NoteOn note = new NoteOn(pitch, velocity, time);
+        NoteOn note = new NoteOn(data[1], data[0], time);
         // Write
         this.parsed.add(note);
         break;
       // PolyphonicAfterTouch
-      case 0xA:
+      case 0xA0:
         int pitch = parse_uint7(this.data);
         int pressure = parse_uint7(this.data);
 
@@ -122,33 +136,20 @@ class Parser {
         this.parsed.add(pressureEvent);
         break;
       // Pitch Wheel
-      case 0xE:
+      case 0xE0:
         PitchWheelEvent pitchWheelEvent = parse_pitch_wheel(this.data);
         this.parsed.add(pitchWheelEvent);
         break;
       default:
+        print("HEK");
         break;
     }
   }
 
 
   /// Get offset from origin of file
-  int GetCurrentIndex () {
+  int getCurrentIndex () {
     int diff = (this.originalData.length - this.data.length);
     return diff;
   }
-}
-
-// Entry point
-main() async {
-  var file = new File("../Chrono Trigger - 1000 AD.mid");
-  var contents;
-
-  contents = await file.readAsBytes();
-  contents = new List.from(contents);
-  var gg = new Parser(contents);
-  print(gg.data);
-  print(parse_file_header(contents));
-  print(parse_variable_length(contents));
-  gg = new NoteOn(3, 3, 3);
 }

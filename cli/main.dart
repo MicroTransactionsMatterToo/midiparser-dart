@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:midiparser/midiparser.dart';
+import '../lib/midiparser.dart';
 
 main() {
   var file = new File("../Chrono Trigger - 1000 AD.mid");
@@ -8,5 +8,10 @@ main() {
 
   contents = file.readAsBytesSync();
   contents = new List.from(contents);
-  Parser parser = new Parser();
+  Parser parser = new Parser(contents);
+  parser.parse();
+  var gg = parser.parsed.iterator;
+  while(gg.moveNext()) {
+    print(gg.current);
+  }
 }

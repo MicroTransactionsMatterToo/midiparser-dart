@@ -4,6 +4,7 @@ import "package:midiparser/src/events.dart";
 
 /// Parses a 32 bit unsigned value, dropping used indexes as needed
 int parse_uint32(List<int> fileArray) {
+  print("UINT32 called");
   var bytes = fileArray.sublist(0, 4); // Extract 4 bytes from file
   fileArray.removeRange(0, 4);  // Drop those bytes
 
@@ -18,6 +19,7 @@ int parse_uint32(List<int> fileArray) {
 
 /// Parses a 24 bit unsigned value, dropping used indexes as needed
 int parse_uint24(List<int> fileArray) {
+  print("UINT24 called");
   var bytes = fileArray.sublist(0, 3); // Extract 3 bytes from file
   fileArray.removeRange(0, 3); // Drop those bytes
 
@@ -31,6 +33,7 @@ int parse_uint24(List<int> fileArray) {
 
 /// Parses a 16 bit unsigned integer, dropping indexes as needed
 int parse_uint16(List<int> fileArray) {
+  print("UINT16 called");
   var bytes = fileArray.sublist(0, 2); // Extract 2 bytes from file
   fileArray.removeRange(0, 2); // Drop those bytes
 
@@ -43,12 +46,23 @@ int parse_uint16(List<int> fileArray) {
 
 /// Parses a 7 bit unsigned integer, dropping indexes as needed
 int parse_uint7(List<int> fileArray) {
+  print("UINT7 called");
   var bytes = fileArray.sublist(0,1);
   fileArray.removeAt(0);
 
   var rval = bytes[0];
   rval &= 0x7F;
 
+  return rval;
+}
+
+List<int> parse_two_uint7(List<int> fileArray) {
+  print("2UINT7 Called");
+  var bytes = fileArray.sublist(0, 2);
+  fileArray.removeRange(0, 2);
+  print(bytes);
+
+  var rval = [bytes[0] & 0x7F, bytes[1] & 0x7F];
   return rval;
 }
 
@@ -98,25 +112,30 @@ MIDIHeader parse_file_header(List<int> fileArray) {
 
 /// Parses a MIDI variable length value
 int parse_variable_length(List<int> fileArray) {
-  var bytes = fileArray.sublist(0,1);
-  fileArray.removeRange(0,1);
+  var bytes = fileArray.elementAt(0);
+  fileArray.removeAt(0);
 
   int return_count = 1;
   var result = 0x00;
 
   var firstRun = true;
-  while ((firstRun || (bytes[0] & 0x80 == 0x80)) && (return_count > 0)) {
+  while ((firstRun || (bytes & 0x80 == 0x80)) && (return_count > 0) && (fileArray.length > 1)) {
+    print("New loop");
     result <<= 7;
-    return_count = fileArray[0];
+    bytes = fileArray.elementAt(0);
     fileArray.removeAt(0);
+    return_count = bytes;
 
-    result |= (fileArray[0] & 0x7F);
+
+    result |= (bytes & 0x7F);
+
     firstRun = false;
   }
 
   if (num == 0 && !firstRun) {
     throw new Exception("Invalid variable length value");
   }
+  print("Done");
 
   return result;
 }
