@@ -1,5 +1,8 @@
 name: "midiparser"
-version: "1.0.0"
+version: "1.0.1"
 description: "Standard MIDI File parsing lib for Dart"
 author: "Ennis Massey <ennisbaradine@gmail.com>"
 homepage: https://github.com/MicroTransactionsMatterToo/midiparser-dart
+
+executables:
+  midiparser: "cli.dart"

@@ -1,6 +1,6 @@
 
-import "package:midiparser/src/events.dart";
-import "package:midiparser/src/parse.dart";
+import "events.dart";
+import "parse.dart";
 
 
 // Lexer State enum
@@ -70,7 +70,7 @@ class Parser {
   // Constructor
   /// Constructor
   Parser(List<int> data) {
-    this.data = data;
+    this.data = new List.from(data, growable: true);
     this.state = LexState.EXPECT_HEADER;
     this.parsed = new MIDIData();
     this.currentIndex = 0;
