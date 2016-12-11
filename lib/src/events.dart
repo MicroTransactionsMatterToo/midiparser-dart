@@ -235,4 +235,3 @@ class ChannelAfterTouch {
 
   ChannelAfterTouch(this.controller, this.time, this.pitch, this.pressure);
 }
-

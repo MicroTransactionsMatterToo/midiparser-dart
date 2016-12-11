@@ -4,7 +4,6 @@ import "package:midiparser/src/events.dart";
 
 /// Parses a 32 bit unsigned value, dropping used indexes as needed
 int parse_uint32(List<int> fileArray) {
-  print("UINT32 called");
   var bytes = fileArray.sublist(0, 4); // Extract 4 bytes from file
   fileArray.removeRange(0, 4);  // Drop those bytes
 
@@ -19,7 +18,6 @@ int parse_uint32(List<int> fileArray) {
 
 /// Parses a 24 bit unsigned value, dropping used indexes as needed
 int parse_uint24(List<int> fileArray) {
-  print("UINT24 called");
   var bytes = fileArray.sublist(0, 3); // Extract 3 bytes from file
   fileArray.removeRange(0, 3); // Drop those bytes
 
@@ -33,7 +31,6 @@ int parse_uint24(List<int> fileArray) {
 
 /// Parses a 16 bit unsigned integer, dropping indexes as needed
 int parse_uint16(List<int> fileArray) {
-  print("UINT16 called");
   var bytes = fileArray.sublist(0, 2); // Extract 2 bytes from file
   fileArray.removeRange(0, 2); // Drop those bytes
 
@@ -46,7 +43,6 @@ int parse_uint16(List<int> fileArray) {
 
 /// Parses a 7 bit unsigned integer, dropping indexes as needed
 int parse_uint7(List<int> fileArray) {
-  print("UINT7 called");
   var bytes = fileArray.sublist(0,1);
   fileArray.removeAt(0);
 
@@ -57,10 +53,9 @@ int parse_uint7(List<int> fileArray) {
 }
 
 List<int> parse_two_uint7(List<int> fileArray) {
-  print("2UINT7 Called");
   var bytes = fileArray.sublist(0, 2);
   fileArray.removeRange(0, 2);
-  print(bytes);
+
 
   var rval = [bytes[0] & 0x7F, bytes[1] & 0x7F];
   return rval;
@@ -120,7 +115,6 @@ int parse_variable_length(List<int> fileArray) {
 
   var firstRun = true;
   while ((firstRun || (bytes & 0x80 == 0x80)) && (return_count > 0) && (fileArray.length > 1)) {
-    print("New loop");
     result <<= 7;
     bytes = fileArray.elementAt(0);
     fileArray.removeAt(0);

@@ -32,7 +32,6 @@ class MIDIData {
   }
 
   void add(dynamic item) {
-    print("G");
     // Type Checking
     if (item is NoteEvent) {
       this.notes.add(item);
@@ -104,10 +103,8 @@ class Parser {
   /// Called internally, when parsing an ambiguous in-track event
   parseTrackEvent() {
     int time = parse_variable_length(this.data);
-    print(time);
     int currentByte = this.data[0];
     int currentMessage = currentByte & 0xF0;
-    print(currentByte.toRadixString(16));
     switch (currentMessage) {
       // NoteOff
       case 0x80:
@@ -120,7 +117,6 @@ class Parser {
         break;
       // NoteOn
       case 0x90:
-        print("0x9");
         var data = parse_two_uint7(this.data);
         // New NoteOn
         NoteOn note = new NoteOn(data[1], data[0], time);
@@ -141,7 +137,6 @@ class Parser {
         this.parsed.add(pitchWheelEvent);
         break;
       default:
-        print("HEK");
         break;
     }
   }
