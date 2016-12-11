@@ -5,4 +5,4 @@ author: "Ennis Massey <ennisbaradine@gmail.com>"
 homepage: https://github.com/MicroTransactionsMatterToo/midiparser-dart
 
 executables:
-  midiparser: "cli.dart"
+  midiparser: "cli"
