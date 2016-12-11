@@ -129,7 +129,6 @@ int parse_variable_length(List<int> fileArray) {
   if (num == 0 && !firstRun) {
     throw new Exception("Invalid variable length value");
   }
-  print("Done");
 
   return result;
 }
