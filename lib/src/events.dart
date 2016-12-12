@@ -1,29 +1,18 @@
 /// Chunk Header Type
 ///
 /// Consists of the 2 currently valid headers
-enum HeaderType {
-  FILE_HEADER,
-  TRACK_HEADER
-}
+enum HeaderType { FILE_HEADER, TRACK_HEADER }
 
 /// File structure
 ///
 /// Whether this file consists of one track, multiple tracks, or
 /// multiple files
-enum FileType {
-  SINGLE_TRACK,
-  MULTI_TRACK,
-  MULTI_FILE
-}
-
+enum FileType { SINGLE_TRACK, MULTI_TRACK, MULTI_FILE }
 
 /// Format of time
 ///
 /// System used for MIDI delta values
-enum TimeFormat {
-  METRIC_TIME_FORMAT,
-  SMPTE_TIME_FORMAT
-}
+enum TimeFormat { METRIC_TIME_FORMAT, SMPTE_TIME_FORMAT }
 
 /// A pitch wheel event
 ///
@@ -71,7 +60,40 @@ class MIDIHeader {
   }
 
   String toString() {
-    var rval = "Length: $length; Type: ${type}; Time: $timeDivision; Ticks per quarter note: $ticksPerQuarterNote; Time format: $timeFormat";
+    var rval =
+        "Length: $length; Type: ${type}; Time: $timeDivision; Ticks per quarter note: $ticksPerQuarterNote; Time format: $timeFormat";
+    return rval;
+  }
+
+  int toBytes() {
+    var type = "MTrk".codeUnits;
+    var length = this.length;
+    var format = this.type.index;
+    var ntracks = this.tracks;
+    var division = this.timeDivision;
+    var rval = 0;
+    for (var byte in type) {
+      rval <<= 8;
+      rval += byte;
+    }
+
+    // Shift left 32 bits, then write the length
+    rval <<= 32;
+    rval += 6;
+
+    // Shift left 16 and write the format
+    rval <<= 16;
+    rval += format;
+
+    // Shift left 16 and write the number of tracks
+    rval <<= 16;
+    rval += ntracks;
+
+    // Shift left 16 and right the timecode
+    rval <<= 16;
+    rval += division;
+    
+
     return rval;
   }
 }
@@ -100,7 +122,7 @@ class TrackEvent {
 
   TrackEvent(int bytes) {
     switch (bytes) {
-    // Note Events
+      // Note Events
       case 0x8:
         this.rawType = bytes;
         this.evaluatedType = "NoteOff";
@@ -112,8 +134,7 @@ class TrackEvent {
 
 // Generic for Notes
 /// Generic for Notes
-class NoteEvent {
-}
+abstract class NoteEvent {}
 
 /// NoteOn MIDI Message
 class NoteOn extends NoteEvent {
@@ -156,8 +177,26 @@ class NoteOn extends NoteEvent {
         return "";
     }
   }
-}
 
+  /// Returns the correct bytes for use in a Standard MIDI File
+  int toBytes(int channel) {
+    if (channel > 15) {
+      throw new ArgumentError.value(channel);
+    }
+    // Encode status bytes
+    int statusByte = 8;
+    statusByte <<= 4;
+    statusByte += channel;
+    // Encode data
+    statusByte <<= 8;
+    statusByte += this.pitch;
+    statusByte <<= 8;
+    statusByte += this.velocity;
+
+    // Return it
+    return statusByte;
+  }
+}
 
 /// NoteOff MIDI Message
 class NoteOff extends NoteEvent {
@@ -200,6 +239,25 @@ class NoteOff extends NoteEvent {
         return "";
     }
   }
+
+  /// Returns the correct bytes for use in a Standard MIDI File
+  int toBytes(int channel) {
+    if (channel > 15) {
+      throw new ArgumentError.value(channel);
+    }
+    // Encode status bytes
+    int statusByte = 9;
+    statusByte <<= 4;
+    statusByte += channel;
+    // Encode data
+    statusByte <<= 8;
+    statusByte += this.pitch;
+    statusByte <<= 8;
+    statusByte += this.velocity;
+
+    // Return it
+    return statusByte;
+  }
 }
 
 // Polyphonic Event
@@ -212,6 +270,25 @@ class PolyPhonicAfterTouch {
 
   String toString() =>
       "AfterTouch - Pressure: ${this.pressure}, Pitch: ${this.pitch}";
+
+  /// Returns the correct bytes for use in a Standard MIDI File
+  int toBytes(int channel) {
+    if (channel > 15) {
+      throw new ArgumentError.value(channel);
+    }
+    // Encode status bytes
+    int statusByte = 9;
+    statusByte <<= 4;
+    statusByte += channel;
+    // Encode data
+    statusByte <<= 8;
+    statusByte += this.pitch;
+    statusByte <<= 8;
+    statusByte += this.pressure;
+
+    // Return it
+    return statusByte;
+  }
 }
 
 // Control Change
@@ -225,13 +302,44 @@ class ControlChange {
 
   String toString() =>
       "Control change from ${this.controller} to ${this.value}";
+
+  /// Returns the correct bytes for use in a Standard MIDI File
+  int toBytes(int channel) {
+    if (channel > 15) {
+      throw new ArgumentError.value(channel);
+    }
+    // Encode status bytes
+    int statusByte = 11;
+    statusByte <<= 4;
+    statusByte += channel;
+    // Encode data
+    statusByte <<= 8;
+    statusByte += this.controller;
+    statusByte <<= 8;
+    statusByte += this.value;
+
+    // Return it
+    return statusByte;
+  }
 }
 
 class ChannelAfterTouch {
   int time;
   int pressure;
-  int pitch;
-  int controller;
+  int channel;
 
-  ChannelAfterTouch(this.controller, this.time, this.pitch, this.pressure);
+  ChannelAfterTouch(this.channel, this.time, this.pressure);
+
+  String toString() =>
+      "Channel AfterTouch: ${this.channel} to ${this.pressure}";
+
+  int toBytes(int channel) {
+    int statusByte = 13;
+    statusByte <<= 4;
+    statusByte += channel;
+    statusByte <<= 8;
+    statusByte += this.pressure;
+
+    return statusByte;
+  }
 }

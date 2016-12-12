@@ -1,6 +1,6 @@
 import "dart:convert";
 
-import "package:midiparser/src/events.dart";
+import "events.dart";
 
 /// Parses a 32 bit unsigned value, dropping used indexes as needed
 int parse_uint32(List<int> fileArray) {
