@@ -1,8 +1,20 @@
 import 'package:midiparser/midiparser.dart';
+import 'dart:io';
 
-main() {
-  var gg = new MIDIHeader(6, FileType.MULTI_TRACK, 90, 2);
-  print(binary(gg.toBytes()));
+main() async {
+  var outFile = new File("./MEMES.mid");
+  var gg = new MIDIFile(480);
+  gg.addNewTrack("h");
+  gg.addNewTrack("S");
+  print(gg.tracks);
+  print(gg.trackNames["h"]);
+  gg.tracks[0].add(new NoteOn(20, 30, 2, 1));
+  gg.tracks[1].add(new NoteOn(20, 30, 2, 1));
+  print(gg.tracks[0].toBytes());
+  for (var byte in gg.toBytes()) {
+    print(byte);
+    outFile.writeAsBytes([byte], mode: FileMode.APPEND, flush: true);
+  }
 }
 
 

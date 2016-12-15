@@ -105,13 +105,14 @@ class Parser {
     int time = parse_variable_length(this.data);
     int currentByte = this.data[0];
     int currentMessage = currentByte & 0xF0;
+    int currentChannel = currentByte & 0x0F;
     switch (currentMessage) {
       // NoteOff
       case 0x80:
         var data = parse_two_uint7(this.data);
 
         // New NoteOff
-        NoteOff note = new NoteOff(data[1], data[0], time);
+        NoteOff note = new NoteOff(data[1], data[0], time, currentChannel);
         // Write into this
         this.parsed.add(note);
         break;
@@ -119,7 +120,7 @@ class Parser {
       case 0x90:
         var data = parse_two_uint7(this.data);
         // New NoteOn
-        NoteOn note = new NoteOn(data[1], data[0], time);
+        NoteOn note = new NoteOn(data[1], data[0], time, currentChannel);
         // Write
         this.parsed.add(note);
         break;
@@ -128,12 +129,12 @@ class Parser {
         int pitch = parse_uint7(this.data);
         int pressure = parse_uint7(this.data);
 
-        PolyPhonicAfterTouch pressureEvent = new PolyPhonicAfterTouch(pressure, pitch, time);
+        PolyPhonicAfterTouch pressureEvent = new PolyPhonicAfterTouch(pressure, pitch, time, currentChannel);
         this.parsed.add(pressureEvent);
         break;
       // Pitch Wheel
       case 0xE0:
-        PitchWheelEvent pitchWheelEvent = parse_pitch_wheel(this.data);
+        PitchWheelEvent pitchWheelEvent = parse_pitch_wheel(this.data, currentChannel);
         this.parsed.add(pitchWheelEvent);
         break;
       default:

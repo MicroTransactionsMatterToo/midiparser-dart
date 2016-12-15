@@ -62,7 +62,7 @@ List<int> parse_two_uint7(List<int> fileArray) {
 }
 
 /// Parses a pitch wheel value, dropping indexes as needed
-PitchWheelEvent parse_pitch_wheel(List<int> fileArray) {
+PitchWheelEvent parse_pitch_wheel(List<int> fileArray, int channel) {
   var bytes = fileArray.sublist(0, 2);
   fileArray.removeRange(0, 2);
 
@@ -73,7 +73,7 @@ PitchWheelEvent parse_pitch_wheel(List<int> fileArray) {
   int relative;
   relative = value - 0x2000;
 
-  return new PitchWheelEvent(relative, value);
+  return new PitchWheelEvent(relative, value, channel);
 }
 
 /// Parses a Track Header, dropping indexes as needed
