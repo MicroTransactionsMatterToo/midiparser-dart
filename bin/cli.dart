@@ -40,4 +40,11 @@ main(List<String> args) async {
 
   // Print the data parsed
   print(parser.parsed.fileHeader);
+
+  // If debug, print all note data
+  if (debug) {
+    for (var i in parser.parsed.events) {
+      print(i);
+    }
+  }
 }
